@@ -25,10 +25,23 @@ jobs:
             build-essential cmake ninja-build pkg-config \
             libeigen3-dev libomp-dev libspdlog-dev libcgal-dev \
             libarrow-dev libparquet-dev libhdf5-dev \
-            nlohmann-json3-dev libtiff-dev
+            nlohmann-json3-dev libtiff-dev \
+            libspdlog-dev libfmt-dev \
+            liblz4-dev libsnappy-dev libzstd-dev libbz2-dev \
+            libssl-dev libcurl4-openssl-dev libre2-dev \
+            libboost-dev libgmp-dev libmpfr-dev \
+            libutf8proc-dev libthrift-dev
 
-      - name: Build
-        run: cmake -P cmake/build_and_install.cmake
+      - name: Build static
+        run: |
+          cmake -S . -B build -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$PWD/install \
+            -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
+            -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
+            -DBUILD_SHARED_LIBS=OFF
+          cmake --build build --target baysor
+          cmake --install build
 
       - name: Verify
         run: |
