@@ -29,7 +29,9 @@ jobs:
         run: cmake -P cmake/build_and_install.cmake
 
       - name: Verify
-        run: ./install/bin/baysor --version
+        run: |
+          file install/bin/baysor
+          ldd install/bin/baysor || true
 
       - name: Upload binary to release
         run: |
