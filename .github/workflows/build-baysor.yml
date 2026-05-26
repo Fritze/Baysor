@@ -48,10 +48,33 @@ jobs:
           file install/bin/baysor
           ldd install/bin/baysor || true
 
-      - name: Upload binary to release
+      - name: Bundle with shared libs
         run: |
-          ls -la install/bin/baysor
-          sha256sum install/bin/baysor
+          mkdir -p bundle/lib
+          cp install/bin/baysor bundle/
+          # Copy all shared library dependencies
+          ldd install/bin/baysor | awk '/=>/ {print $3}' | while read lib; do
+            [ -f "$lib" ] && cp "$lib" bundle/lib/
+          done
+          # Copy ld-linux
+          cp /lib64/ld-linux-x86-64.so.2 bundle/lib/
+          # Create wrapper script
+          cat > bundle/run_baysor.sh << 'EOF'
+#!/bin/bash
+DIR="$(cd "$(dirname "$0")" && pwd)"
+export LD_LIBRARY_PATH="$DIR/lib:$LD_LIBRARY_PATH"
+exec "$DIR/lib/ld-linux-x86-64.so.2" "$DIR/baysor" "$@"
+EOF
+          chmod +x bundle/run_baysor.sh bundle/baysor
+          # Test it works
+          bundle/run_baysor.sh run --help || true
+          # Tar it up
+          tar czf baysor-bundle.tar.gz -C bundle .
+          ls -la baysor-bundle.tar.gz
+
+      - name: Output bundle
+        run: |
+          sha256sum baysor-bundle.tar.gz
           echo "===BINARY_START==="
-          base64 install/bin/baysor
+          base64 baysor-bundle.tar.gz
           echo "===BINARY_END==="
