@@ -7,7 +7,9 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        run: |
+          git clone --depth 1 --branch cpp https://github.com/kharchenkolab/Baysor.git .
 
       - name: Install dependencies
         run: |
@@ -29,8 +31,9 @@ jobs:
       - name: Verify
         run: ./install/bin/baysor --version
 
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: baysor-linux-x86_64
-          path: install/bin/baysor
+      - name: Upload binary to release
+        run: |
+          TAG="build-$(date +%Y%m%d-%H%M%S)"
+          gh release create "$TAG" install/bin/baysor --title "Baysor Linux x86_64" --notes "Auto-built binary"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
