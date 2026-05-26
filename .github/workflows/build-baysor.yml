@@ -36,6 +36,6 @@ jobs:
       - name: Upload binary to release
         run: |
           TAG="build-$(date +%Y%m%d-%H%M%S)"
-          gh release create "$TAG" install/bin/baysor --title "Baysor Linux x86_64" --notes "Auto-built binary"
+          gh release create "$TAG" install/bin/baysor --repo "$GITHUB_REPOSITORY" --title "Baysor Linux x86_64" --notes "Auto-built binary"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
